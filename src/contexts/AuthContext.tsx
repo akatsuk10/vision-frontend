@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useStore, User } from '@/store/useStore';
+import axios from 'axios';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -26,24 +27,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     setLoading(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (email === 'user@example.com' && password === 'password') {
-        const user: User = {
-          id: '1',
-          name: 'Demo User',
-          email: 'user@example.com',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2080&auto=format&fit=crop',
-          isLoggedIn: true,
-        };
-        
-        loginAction(user);
-      } else {
-        throw new Error('Invalid email or password');
-      }
+      const response = await axios.post(`http://localhost:5000/api/v1/auth/login`, { email, password });
+      console.log(response)
+      const { accessToken } = response.data.data
+      console.log(accessToken)
+      localStorage.setItem("accessToken", accessToken)
+
+      const userdata = await axios.get(`http://localhost:5000/api/v1/auth/profile`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+
+      const user: User = userdata.data.user;
+      console.log(user)
+      loginAction(user);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -54,11 +54,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loginWithGoogle = async () => {
     setLoading(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const user: User = {
         id: '1',
         name: 'Google User',
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2080&auto=format&fit=crop',
         isLoggedIn: true,
       };
-      
+
       loginAction(user);
     } catch (error) {
       console.error('Google login error:', error);

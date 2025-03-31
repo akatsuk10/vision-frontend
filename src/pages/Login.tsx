@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import axios from 'axios'
 
 export function Login() {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ export function Login() {
     try {
       if (isSignUp) {
         // For this demo, we'll just redirect to login since we don't have a real backend
+
+
         toast.success('Account created! Please log in.');
         setIsSignUp(false);
         return;

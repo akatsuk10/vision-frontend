@@ -1,4 +1,5 @@
 
+import axios from 'axios';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -6,8 +7,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar: string;
-  isLoggedIn: boolean;
+//  avatar: string;
+//  isLoggedIn: boolean;
 }
 
 export interface Product {
@@ -99,29 +100,31 @@ export const useStore = create<AppState>()(
             : [...state.products, product],
         })),
 
-      upvoteProduct: (productId) =>
-        set((state) => ({
-          products: state.products.map((product) =>
-            product.id === productId
-              ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
-              : product
-          ),
-          filteredProducts: state.filteredProducts.map((product) =>
-            product.id === productId
-              ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
-              : product
-          ),
-          featuredProducts: state.featuredProducts.map((product) =>
-            product.id === productId
-              ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
-              : product
-          ),
-          trendingProducts: state.trendingProducts.map((product) =>
-            product.id === productId
-              ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
-              : product
-          ),
-        })),
+        upvoteProduct: async (productId: string) => {
+          const accessToken = localStorage.getItem("accessToken")
+          try {
+            const response = await axios.post(`http://localhost:5000/api/v1/products/${productId}/vote`, {
+             
+              headers: {
+                Authorization: `Bearer ${accessToken}`
+              }
+            });
+        
+            if (!response.ok) {
+              throw new Error('Failed to upvote product');
+            }
+        
+            set((state) => ({
+              products: state.products.map((product) =>
+                product.id === productId
+                  ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
+                  : product
+              ),
+            }));
+          } catch (error) {
+            console.error('Error upvoting product:', error);
+          }
+        },
 
       removeUpvote: (productId) =>
         set((state) => ({
