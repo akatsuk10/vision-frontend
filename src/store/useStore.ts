@@ -216,7 +216,7 @@ export const initializeStore = () => {
       id: '1',
       title: 'Figma',
       tagline: 'Design, prototype, and gather feedback all in one place',
-      description: 'Figma is a cloud-based design tool that's similar to Sketch in functionality and features, but with big differences that make Figma better for team collaboration.',
+      description: 'Figma is a cloud-based design tool that is similar to Sketch in functionality and features, but with big differences that make Figma better for team collaboration.',
       imageUrl: 'https://images.unsplash.com/photo-1656942200475-53da75b58ab2?q=80&w=2940&auto=format&fit=crop',
       websiteUrl: 'https://figma.com',
       categories: ['design', 'productivity'],
@@ -243,7 +243,7 @@ export const initializeStore = () => {
       id: '2',
       title: 'Notion',
       tagline: 'All-in-one workspace for notes, tasks, wikis, and databases',
-      description: 'Notion is an all-in-one workspace for your notes, tasks, wikis, and databases. It's a new tool that blends your everyday work apps into one. It's the all-in-one workspace for you and your team.',
+      description: 'Notion is an all-in-one workspace for your notes, tasks, wikis, and databases. It is a new tool that blends your everyday work apps into one. It is the all-in-one workspace for you and your team.',
       imageUrl: 'https://images.unsplash.com/photo-1629429407759-01cd3d7cfb38?q=80&w=2940&auto=format&fit=crop',
       websiteUrl: 'https://notion.so',
       categories: ['productivity', 'tech'],
@@ -269,8 +269,8 @@ export const initializeStore = () => {
     {
       id: '3',
       title: 'Linear',
-      tagline: 'The issue tracking tool you'll enjoy using',
-      description: 'Linear helps streamline software projects, sprints, tasks, and bug tracking. It's built for high-performance teams.',
+      tagline: 'The issue tracking tool you will enjoy using',
+      description: 'Linear helps streamline software projects, sprints, tasks, and bug tracking. It is built for high-performance teams.',
       imageUrl: 'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?q=80&w=2069&auto=format&fit=crop',
       websiteUrl: 'https://linear.app',
       categories: ['productivity', 'tech'],
@@ -285,7 +285,7 @@ export const initializeStore = () => {
       comments: [
         {
           id: '1',
-          content: 'Best issue tracker I've ever used. The UI is fantastic.',
+          content: 'Best issue tracker I have ever used. The UI is fantastic.',
           authorId: '6',
           authorName: 'Taylor Kim',
           authorAvatar: 'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=2787&auto=format&fit=crop',
