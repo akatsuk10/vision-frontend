@@ -17,12 +17,12 @@ export function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
     }
-    
+
     try {
       if (isSignUp) {
         // For this demo, we'll just redirect to login since we don't have a real backend
@@ -32,7 +32,7 @@ export function Login() {
         setIsSignUp(false);
         return;
       }
-      
+
       await login(email, password);
       toast.success('Successfully logged in!');
       navigate('/');
@@ -45,6 +45,7 @@ export function Login() {
 
   const handleGoogleLogin = async () => {
     try {
+
       await loginWithGoogle();
       toast.success('Successfully logged in with Google!');
       navigate('/');
@@ -58,16 +59,16 @@ export function Login() {
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-2">{isSignUp ? 'Create an account' : 'Welcome back'}</h1>
         <p className="text-muted-foreground">
-          {isSignUp 
-            ? 'Sign up to discover amazing products' 
+          {isSignUp
+            ? 'Sign up to discover amazing products'
             : 'Sign in to continue your journey'}
         </p>
       </div>
-      
+
       <div className="space-y-4">
-        <Button 
-          variant="outline" 
-          className="w-full" 
+        <Button
+          variant="outline"
+          className="w-full"
           onClick={handleGoogleLogin}
           disabled={loading}
         >
@@ -101,13 +102,13 @@ export function Login() {
           </svg>
           Continue with Google
         </Button>
-        
+
         <div className="flex items-center">
           <div className="flex-grow h-px bg-border"></div>
           <div className="px-3 text-xs text-muted-foreground">OR</div>
           <div className="flex-grow h-px bg-border"></div>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
@@ -122,7 +123,7 @@ export function Login() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
               Password
@@ -136,7 +137,7 @@ export function Login() {
               required
             />
           </div>
-          
+
           {!isSignUp && (
             <div className="text-sm text-right">
               <Link to="/forgot-password" className="text-primary hover:underline">
@@ -144,11 +145,11 @@ export function Login() {
               </Link>
             </div>
           )}
-          
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </Button>
-          
+
           <div className="text-center text-sm">
             {isSignUp ? (
               <p>
@@ -175,7 +176,7 @@ export function Login() {
             )}
           </div>
         </form>
-        
+
         <div className="text-center text-xs text-muted-foreground">
           <p>
             By continuing, you agree to our{' '}
@@ -189,7 +190,7 @@ export function Login() {
             .
           </p>
         </div>
-        
+
         {/* Demo info */}
         <div className="p-4 bg-muted rounded-lg text-sm">
           <p className="font-medium mb-1">Demo Login:</p>

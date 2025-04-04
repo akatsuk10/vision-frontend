@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useStore, User } from '@/store/useStore';
 import axios from 'axios';
@@ -10,6 +9,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
   loading: boolean;
+  loginAction: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,17 +57,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const GOOGLE_CLIENT_ID = "823659717827-egjbfce4ot5ufshk60ovv8be5og8rphv.apps.googleusercontent.com"; // Replace with your Google Client ID
+      const REDIRECT_URI = "http://localhost:5000/api/v1/auth/google"; // Frontend callback URL
 
-      const user: User = {
-        id: '1',
-        name: 'Google User',
-        email: 'google@example.com',
-        avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2080&auto=format&fit=crop',
-        isLoggedIn: true,
-      };
+      const googleAuthURL = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=email profile`;
 
-      loginAction(user);
+      window.location.href = googleAuthURL;
+
+      
+
+      //      loginAction(user);
     } catch (error) {
       console.error('Google login error:', error);
       throw error;
@@ -77,6 +76,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
+
+    localStorage.clear()
     logoutAction();
   };
 
@@ -89,6 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loginWithGoogle,
         logout,
         loading,
+        loginAction,
       }}
     >
       {children}

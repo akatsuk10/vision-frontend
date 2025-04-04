@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import Profile from "@/pages/Profile";
 import Categories from "@/pages/Categories";
 import Search from "@/pages/Search";
 import NotFound from "@/pages/NotFound";
+import { GoogleCallback } from "@/pages/GoogleCallback";
 
 // Initialize query client for React Query
 const queryClient = new QueryClient();
@@ -40,6 +40,7 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
