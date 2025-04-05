@@ -1,97 +1,74 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore, Product } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { UploadCloud, Plus, X } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { UploadCloud, X } from 'lucide-react';
 
 export function Submit() {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
-  const categories = useStore((state) => state.categories);
-  const addProduct = useStore((state) => state.addProduct);
-  
-  const [title, setTitle] = useState('');
-  const [tagline, setTagline] = useState('');
+  const { isAuthenticated } = useAuth();
+  const createProduct = useStore((state) => state.createProduct);
+
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [link, setLink] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Redirect if not authenticated
   if (!isAuthenticated) {
     navigate('/login');
     toast.error('You need to be logged in to submit a product');
     return null;
   }
-  
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    // if (file) {
+    //   // Create a preview URL
+    //   const reader = new FileReader();
+    //   reader.onloadend = () => {
+    //     setImagePreview("https://fastly.picsum.photos/id/528/200/300.jpg?hmac=nQ5klrDwddW0du03zqKfOpyHkFBDaspI729AfK_FXPY");
+    //   };
+    //   reader.readAsDataURL(file);
+    // }
+    setImagePreview("https://fastly.picsum.photos/id/528/200/300.jpg?hmac=nQ5klrDwddW0du03zqKfOpyHkFBDaspI729AfK_FXPY")
   };
-  
+
   const removeImage = () => {
     setImagePreview(null);
   };
-  
-  const handleCategoryToggle = (categorySlug: string) => {
-    setSelectedCategories((prev) => 
-      prev.includes(categorySlug)
-        ? prev.filter(c => c !== categorySlug)
-        : [...prev, categorySlug]
-    );
-  };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!title || !tagline || !description || !websiteUrl || !imagePreview || selectedCategories.length === 0) {
+
+    if (!name || !description || !link || !imagePreview) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // In a real app, you would upload the image to a server here
-      
-      const newProduct: Product = {
-        id: Date.now().toString(), // in a real app, the server would generate this
-        title,
-        tagline,
+      // For now, we'll use the base64 image data
+
+      const newProduct = await createProduct(
+        name,
         description,
-        imageUrl: imagePreview, // in a real app, this would be the URL from the server
-        websiteUrl,
-        categories: selectedCategories,
-        upvotes: 0,
-        hasUpvoted: false,
-        createdAt: new Date().toISOString(),
-        author: {
-          id: user?.id || '',
-          name: user?.name || '',
-          avatar: user?.avatar || '',
-        },
-        comments: [],
-      };
+        imagePreview,
+        link
+      );
       
-      addProduct(newProduct);
-      
+
       toast.success('Product submitted successfully!');
-      navigate(`/products/${newProduct.id}`);
+      navigate(`/profile`);
     } catch (error) {
+      console.error('Error submitting product:', error);
       toast.error('Failed to submit product');
     } finally {
       setIsSubmitting(false);
@@ -106,39 +83,23 @@ export function Submit() {
           Share your product with the community and get valuable feedback.
         </p>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Product details */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
+            <label htmlFor="name" className="text-sm font-medium">
               Product Name <span className="text-red-500">*</span>
             </label>
             <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Product"
               required
             />
           </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="tagline" className="text-sm font-medium">
-              Tagline <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="tagline"
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-              placeholder="A short, catchy description of your product"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Keep it short and sweet (max 100 characters)
-            </p>
-          </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-medium">
               Description <span className="text-red-500">*</span>
@@ -152,32 +113,32 @@ export function Submit() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <label htmlFor="websiteUrl" className="text-sm font-medium">
+            <label htmlFor="link" className="text-sm font-medium">
               Website URL <span className="text-red-500">*</span>
             </label>
             <Input
-              id="websiteUrl"
+              id="link"
               type="url"
-              value={websiteUrl}
-              onChange={(e) => setWebsiteUrl(e.target.value)}
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com"
               required
             />
           </div>
         </div>
-        
+
         {/* Image upload */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Product Image <span className="text-red-500">*</span></h3>
-          
+
           {imagePreview ? (
             <div className="relative w-full max-w-md">
-              <img 
-                src={imagePreview} 
-                alt="Product preview" 
-                className="w-full aspect-square object-cover rounded-lg border" 
+              <img
+                src={imagePreview}
+                alt="Product preview"
+                className="w-full aspect-square object-cover rounded-lg border"
               />
               <button
                 type="button"
@@ -208,33 +169,7 @@ export function Submit() {
             </div>
           )}
         </div>
-        
-        {/* Categories */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Categories <span className="text-red-500">*</span></h3>
-          <p className="text-sm text-muted-foreground">
-            Select at least one category that best describes your product
-          </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {categories.map((category) => (
-              <div key={category.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`category-${category.slug}`}
-                  checked={selectedCategories.includes(category.slug)}
-                  onCheckedChange={() => handleCategoryToggle(category.slug)}
-                />
-                <label
-                  htmlFor={`category-${category.slug}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  <span className="mr-1">{category.icon}</span> {category.name}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-        
+
         {/* Submit button */}
         <div className="pt-4">
           <Button type="submit" className="w-full md:w-auto" disabled={isSubmitting}>

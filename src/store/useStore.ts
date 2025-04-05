@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -65,6 +64,7 @@ interface AppState {
   
   // Product actions
   addProduct: (product: Product) => void;
+  createProduct: (name: string, description: string, image: string, link: string) => Promise<Product>;
   upvoteProduct: (productId: string) => void;
   removeUpvote: (productId: string) => void;
   addComment: (productId: string, comment: Comment) => void;
@@ -76,7 +76,7 @@ interface AppState {
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       products: [],
       categories: [],
@@ -100,31 +100,71 @@ export const useStore = create<AppState>()(
             : [...state.products, product],
         })),
 
-        upvoteProduct: async (productId: string) => {
-          const accessToken = localStorage.getItem("accessToken")
-          try {
-            const response = await axios.post(`http://localhost:5000/api/v1/products/${productId}/vote`, {
-             
+      createProduct: async (name, description, image, link) => {
+        const accessToken = localStorage.getItem("accessToken");
+        const user = get().user;
+        
+        if (!user) {
+          throw new Error("User not authenticated");
+        }
+        
+        try {
+          const response = await axios.post(
+            `http://localhost:5000/api/v1/products`, 
+            { 
+              name, 
+              description, 
+              image, 
+              link 
+            },
+            {
               headers: {
                 Authorization: `Bearer ${accessToken}`
               }
-            });
-        
-            if (!response.ok) {
-              throw new Error('Failed to upvote product');
             }
-        
-            set((state) => ({
-              products: state.products.map((product) =>
-                product.id === productId
-                  ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
-                  : product
-              ),
-            }));
-          } catch (error) {
-            console.error('Error upvoting product:', error);
+          );
+          
+          const newProduct = response.data.data;
+          
+          // Add the new product to the store
+          set((state) => ({ 
+            products: [...state.products, newProduct],
+            filteredProducts: state.activeFilters.category || state.activeFilters.search 
+              ? [...state.filteredProducts, newProduct] 
+              : [...state.products, newProduct],
+          }));
+          
+          return newProduct;
+        } catch (error) {
+          console.error('Error creating product:', error);
+          throw error;
+        }
+      },
+
+      upvoteProduct: async (productId: string) => {
+        const accessToken = localStorage.getItem("accessToken")
+        try {
+          const response = await axios.post(`http://localhost:5000/api/v1/products/${productId}/vote`, {}, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+      
+          if (response.status !== 200) {
+            throw new Error('Failed to upvote product');
           }
-        },
+      
+          set((state) => ({
+            products: state.products.map((product) =>
+              product.id === productId
+                ? { ...product, upvotes: product.upvotes + 1, hasUpvoted: true }
+                : product
+            ),
+          }));
+        } catch (error) {
+          console.error('Error upvoting product:', error);
+        }
+      },
 
       removeUpvote: (productId) =>
         set((state) => ({
