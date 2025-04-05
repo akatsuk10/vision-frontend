@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Menu, X, Bell, Plus } from 'lucide-react';
@@ -35,7 +34,7 @@ export function Navbar() {
             </div>
             <span className="font-bold text-xl hidden md:block">ProductHunt</span>
           </Link>
-          
+
           <form onSubmit={handleSearch} className="hidden md:flex relative w-full max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
@@ -47,7 +46,7 @@ export function Navbar() {
             />
           </form>
         </div>
-        
+
         <nav className="hidden md:flex items-center gap-4 lg:gap-6">
           <Link to="/categories" className="text-sm font-medium hover:text-brand-purple transition-colors">
             Categories
@@ -93,7 +92,7 @@ export function Navbar() {
                     <Link to="/settings" className="cursor-pointer">Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={logout}
                   >
@@ -109,7 +108,7 @@ export function Navbar() {
                   Log in
                 </Button>
               </Link>
-              <Link to="/login">
+              <Link to="/signup">
                 <Button size="sm">Sign up</Button>
               </Link>
             </>
@@ -144,24 +143,24 @@ export function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </form>
-              
+
               <div className="space-y-2">
-                <Link 
-                  to="/categories" 
+                <Link
+                  to="/categories"
                   className="block p-2 text-sm hover:bg-muted rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Categories
                 </Link>
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="block p-2 text-sm hover:bg-muted rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Trending
                 </Link>
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="block p-2 text-sm hover:bg-muted rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -169,21 +168,21 @@ export function Navbar() {
                 </Link>
                 {isAuthenticated ? (
                   <>
-                    <Link 
-                      to="/submit" 
+                    <Link
+                      to="/submit"
                       className="block p-2 text-sm hover:bg-muted rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Submit Product
                     </Link>
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="block p-2 text-sm hover:bg-muted rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Profile
                     </Link>
-                    <button 
+                    <button
                       className="block w-full text-left p-2 text-sm hover:bg-muted rounded-md"
                       onClick={() => {
                         logout();
@@ -195,15 +194,15 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <Link 
-                      to="/login" 
+                    <Link
+                      to="/login"
                       className="block p-2 text-sm hover:bg-muted rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Log in
                     </Link>
-                    <Link 
-                      to="/login" 
+                    <Link
+                      to="/signup"
                       className="block p-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >

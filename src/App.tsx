@@ -12,6 +12,9 @@ import Layout from "@/components/layout/Layout";
 import Home from "@/pages/Home";
 import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
+import { Signup } from "@/pages/Signup";
+import { VerifyEmail } from "@/pages/VerifyEmail";
+import { SetPassword } from "@/pages/SetPassword";
 import Submit from "@/pages/Submit";
 import Profile from "@/pages/Profile";
 import Categories from "@/pages/Categories";
@@ -34,6 +37,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/submit" element={<Submit />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/categories" element={<Categories />} />
@@ -41,6 +45,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Route>
             <Route path="/auth/google/callback" element={<GoogleCallback />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/set-password" element={<SetPassword />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

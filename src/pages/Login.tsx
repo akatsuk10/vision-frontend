@@ -167,7 +167,7 @@ export function Login() {
                 Don't have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setIsSignUp(true)}
+                  onClick={() => navigate('/signup')}
                   className="text-primary hover:underline font-medium"
                 >
                   Sign Up

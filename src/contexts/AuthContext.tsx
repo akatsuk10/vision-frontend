@@ -10,6 +10,9 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   loginAction: (user: User) => void;
+  signup: (email: string) => Promise<void>;
+  verifyEmailToken: (token: string) => Promise<{ tempToken: string }>;
+  setPasswordWithToken: (token: string, password: string) => Promise<{ accessToken: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,22 +33,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       const response = await axios.post(`http://localhost:5000/api/v1/auth/login`, { email, password });
-      console.log(response)
-      const { accessToken } = response.data.data
-      console.log(accessToken)
-      localStorage.setItem("accessToken", accessToken)
+      const { accessToken } = response.data.data;
+      localStorage.setItem("accessToken", accessToken);
 
       const userdata = await axios.get(`http://localhost:5000/api/v1/auth/profile`, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
-      })
+      });
 
       const user: User = userdata.data.user;
-      console.log(user)
       loginAction(user);
     } catch (error) {
       console.error('Login error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (email: string) => {
+    setLoading(true);
+    try {
+      await axios.post(`http://localhost:5000/api/v1/auth/register`, { email });
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyEmailToken = async (token: string) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/v1/auth/verify-email?token=${token}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Email verification error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setPasswordWithToken = async (token: string, password: string) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/v1/auth/set-password`,
+        { password },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Set password error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -56,17 +102,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
 
     try {
-      // Simulate API call
-      const GOOGLE_CLIENT_ID = "823659717827-egjbfce4ot5ufshk60ovv8be5og8rphv.apps.googleusercontent.com"; // Replace with your Google Client ID
-      const REDIRECT_URI = "http://localhost:5000/api/v1/auth/google"; // Frontend callback URL
+      const GOOGLE_CLIENT_ID = "823659717827-egjbfce4ot5ufshk60ovv8be5og8rphv.apps.googleusercontent.com";
+      const REDIRECT_URI = "http://localhost:5000/api/v1/auth/google";
 
       const googleAuthURL = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=email profile`;
 
       window.location.href = googleAuthURL;
-
-      
-
-      //      loginAction(user);
     } catch (error) {
       console.error('Google login error:', error);
       throw error;
@@ -76,8 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
-
-    localStorage.clear()
+    localStorage.clear();
     logoutAction();
   };
 
@@ -91,6 +131,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout,
         loading,
         loginAction,
+        signup,
+        verifyEmailToken,
+        setPasswordWithToken,
       }}
     >
       {children}
