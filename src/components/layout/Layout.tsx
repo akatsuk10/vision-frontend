@@ -13,9 +13,9 @@ export function Layout() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="">
       <Navbar />
-      <main className="flex-1">
+      <main className="mt-20">
         <Outlet />
       </main>
       <Footer />
