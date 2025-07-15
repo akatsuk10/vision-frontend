@@ -4,8 +4,9 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Search, Menu, X, Bell, Plus } from "lucide-react"
+import { Search, Menu, X, Bell, Plus, Wallet } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useSolanaStore } from "@/store/solanaStore"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
+  const { isConnected, publicKey, balance, connectWallet, disconnectWallet } = useSolanaStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [scrolled, setScrolled] = useState(false)
@@ -88,6 +90,39 @@ export function Navbar() {
                 New
               </Link>
             </motion.div>
+          </div>
+
+          {/* Wallet Status */}
+          <div className="flex items-center gap-2">
+            {isConnected ? (
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1">
+                <Wallet className="h-4 w-4 text-green-600" />
+                <span className="text-xs text-green-800 font-medium">
+                  {publicKey?.toString().slice(0, 4)}...{publicKey?.toString().slice(-4)}
+                </span>
+                <span className="text-xs text-green-600">
+                  {balance.toFixed(2)} SOL
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={disconnectWallet}
+                  className="h-6 px-2 text-xs text-green-600 hover:text-green-800"
+                >
+                  Disconnect
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={connectWallet}
+                className="flex items-center gap-2"
+              >
+                <Wallet className="h-4 w-4" />
+                Connect Wallet
+              </Button>
+            )}
           </div>
           {isAuthenticated ? (
             <div className="flex items-center gap-2 justify-center">

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSolanaStore } from '@/store/solanaStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +12,7 @@ import axios from 'axios'
 export function Login() {
   const navigate = useNavigate();
   const { login, loginWithGoogle, loading } = useAuth();
+  const { connectWallet, isConnected, isConnecting, publicKey, balance } = useSolanaStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -54,6 +56,15 @@ export function Login() {
     }
   };
 
+  const handleConnectWallet = async () => {
+    try {
+      await connectWallet();
+      toast.success('Wallet connected successfully!');
+    } catch (error) {
+      toast.error('Failed to connect wallet');
+    }
+  };
+
   return (
     <div className="container max-w-md mx-auto px-4 py-12">
       <div className="text-center mb-8">
@@ -66,6 +77,38 @@ export function Login() {
       </div>
 
       <div className="space-y-4">
+        {/* Wallet Connection Status */}
+        {isConnected && (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-medium text-green-800">Wallet Connected</p>
+            <p className="text-xs text-green-600 mt-1">
+              Address: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+            </p>
+            <p className="text-xs text-green-600">
+              Balance: {balance.toFixed(4)} SOL
+            </p>
+          </div>
+        )}
+
+        {/* Connect Wallet Button */}
+        {!isConnected && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleConnectWallet}
+            disabled={isConnecting}
+          >
+            <svg
+              className="mr-2 h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            {isConnecting ? 'Connecting...' : 'Connect Phantom Wallet'}
+          </Button>
+        )}
+
         <Button
           variant="outline"
           className="w-full"

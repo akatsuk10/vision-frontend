@@ -1,19 +1,22 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronUp, MessageSquare, Share2, Bookmark, ExternalLink, ChevronLeft } from 'lucide-react';
+import { ChevronUp, MessageSquare, Share2, Bookmark, ExternalLink, ChevronLeft, Wallet } from 'lucide-react';
 import { useStore, Product, Comment } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSolanaStore } from '@/store/solanaStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, user } = useAuth();
+  const { isConnected, userBidProduct } = useSolanaStore();
   const products = useStore((state) => state.products);
   const upvoteProduct = useStore((state) => state.upvoteProduct);
   const removeUpvote = useStore((state) => state.removeUpvote);
@@ -22,6 +25,11 @@ export function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [commentText, setCommentText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Smart contract bidding state
+  const [bidAmount, setBidAmount] = useState('');
+  const [slotsRequested, setSlotsRequested] = useState('');
+  const [isBidding, setIsBidding] = useState(false);
   
   useEffect(() => {
     if (id) {
@@ -137,6 +145,42 @@ export function ProductDetail() {
     }
   };
 
+  const handleBid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      toast.error("You need to connect your wallet to bid");
+      return;
+    }
+    
+    if (!bidAmount || !slotsRequested) {
+      toast.error("Please fill in all bidding fields");
+      return;
+    }
+    
+    setIsBidding(true);
+    
+    try {
+      // Mock product owner address - in real app this would come from the product data
+      const productOwner = "mock_product_owner_address";
+      
+      const txSignature = await userBidProduct(
+        productOwner,
+        parseFloat(bidAmount),
+        parseInt(slotsRequested)
+      );
+      
+      toast.success(`Bid submitted successfully! Transaction: ${txSignature}`);
+      setBidAmount('');
+      setSlotsRequested('');
+    } catch (error) {
+      console.error('Error submitting bid:', error);
+      toast.error('Failed to submit bid');
+    } finally {
+      setIsBidding(false);
+    }
+  };
+
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       {/* Back button */}
@@ -202,6 +246,68 @@ export function ProductDetail() {
             </div>
             <span>•</span>
             <span>{formatDate(product.createdAt)}</span>
+          </div>
+
+          {/* Smart Contract Bidding Section */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-medium text-blue-900 mb-3 flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Invest in this Product
+            </h3>
+            
+            {isConnected ? (
+              <form onSubmit={handleBid} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="bidAmount" className="text-sm font-medium text-blue-800">
+                      Bid Amount (SOL)
+                    </label>
+                    <Input
+                      id="bidAmount"
+                      type="number"
+                      step="0.01"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value)}
+                      placeholder="0.1"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="slotsRequested" className="text-sm font-medium text-blue-800">
+                      Slots Requested
+                    </label>
+                    <Input
+                      id="slotsRequested"
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={slotsRequested}
+                      onChange={(e) => setSlotsRequested(e.target.value)}
+                      placeholder="1"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isBidding}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {isBidding ? 'Submitting Bid...' : 'Submit Bid'}
+                </Button>
+              </form>
+            ) : (
+              <div className="text-center">
+                <p className="text-blue-700 mb-3">Connect your wallet to invest in this product</p>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/login'}
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Connect Wallet
+                </Button>
+              </div>
+            )}
           </div>
           
           <div className="flex flex-wrap gap-2 mb-4">

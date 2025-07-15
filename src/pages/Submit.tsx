@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSolanaStore } from '@/store/solanaStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,17 +13,32 @@ export function Submit() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const createProduct = useStore((state) => state.createProduct);
+  const { launchProduct, isConnected, publicKey } = useSolanaStore();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [link, setLink] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Smart contract fields
+  const [tokenSymbol, setTokenSymbol] = useState('');
+  const [initialDeposit, setInitialDeposit] = useState('');
+  const [ipoSlots, setIpoSlots] = useState('');
+  const [initialTokenSupply, setInitialTokenSupply] = useState('');
+  const [launchDate, setLaunchDate] = useState('');
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
     navigate('/login');
     toast.error('You need to be logged in to submit a product');
+    return null;
+  }
+
+  // Check if wallet is connected
+  if (!isConnected) {
+    navigate('/login');
+    toast.error('You need to connect your wallet to submit a product');
     return null;
   }
 
@@ -46,7 +62,7 @@ export function Submit() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !description || !link || !imagePreview) {
+    if (!name || !description || !link || !imagePreview || !tokenSymbol || !initialDeposit || !ipoSlots || !initialTokenSupply || !launchDate) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -54,18 +70,26 @@ export function Submit() {
     setIsSubmitting(true);
 
     try {
-      // In a real app, you would upload the image to a server here
-      // For now, we'll use the base64 image data
+      // Launch product on smart contract
+      const txSignature = await launchProduct({
+        name,
+        description,
+        tokenSymbol,
+        initialDeposit: parseFloat(initialDeposit),
+        ipoSlots: parseInt(ipoSlots),
+        initialTokenSupply: parseInt(initialTokenSupply),
+        launchDate: Math.floor(new Date(launchDate).getTime() / 1000),
+      });
 
+      // Create product in local store
       const newProduct = await createProduct(
         name,
         description,
         imagePreview,
         link
       );
-      
 
-      toast.success('Product submitted successfully!');
+      toast.success(`Product launched successfully! Transaction: ${txSignature}`);
       navigate(`/profile`);
     } catch (error) {
       console.error('Error submitting product:', error);
@@ -124,6 +148,85 @@ export function Submit() {
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Smart Contract Configuration */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Smart Contract Configuration <span className="text-red-500">*</span></h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="tokenSymbol" className="text-sm font-medium">
+                Token Symbol <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="tokenSymbol"
+                value={tokenSymbol}
+                onChange={(e) => setTokenSymbol(e.target.value)}
+                placeholder="PROD"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="initialDeposit" className="text-sm font-medium">
+                Initial Deposit (SOL) <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="initialDeposit"
+                type="number"
+                step="0.01"
+                value={initialDeposit}
+                onChange={(e) => setInitialDeposit(e.target.value)}
+                placeholder="1.0"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="ipoSlots" className="text-sm font-medium">
+                IPO Slots <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="ipoSlots"
+                type="number"
+                min="1"
+                max="100"
+                value={ipoSlots}
+                onChange={(e) => setIpoSlots(e.target.value)}
+                placeholder="10"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="initialTokenSupply" className="text-sm font-medium">
+                Initial Token Supply <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="initialTokenSupply"
+                type="number"
+                min="1"
+                value={initialTokenSupply}
+                onChange={(e) => setInitialTokenSupply(e.target.value)}
+                placeholder="1000000"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="launchDate" className="text-sm font-medium">
+              Launch Date <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="launchDate"
+              type="datetime-local"
+              value={launchDate}
+              onChange={(e) => setLaunchDate(e.target.value)}
               required
             />
           </div>
