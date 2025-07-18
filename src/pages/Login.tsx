@@ -2,39 +2,33 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSolanaStore } from '@/store/solanaStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import axios from 'axios'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export function Login() {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, loading } = useAuth();
-  const { connectWallet, isConnected, isConnecting, publicKey, balance } = useSolanaStore();
+  const { login, loginWithGoogle, loading, loginWithWallet, walletAddress, registerWithWallet, walletError, clearWalletError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showWalletRegister, setShowWalletRegister] = useState(false);
+  const [registerEmail, setRegisterEmail] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
     }
-
     try {
       if (isSignUp) {
-        // For this demo, we'll just redirect to login since we don't have a real backend
-
-
         toast.success('Account created! Please log in.');
         setIsSignUp(false);
         return;
       }
-
       await login(email, password);
       toast.success('Successfully logged in!');
       navigate('/');
@@ -47,7 +41,6 @@ export function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-
       await loginWithGoogle();
       toast.success('Successfully logged in with Google!');
       navigate('/');
@@ -56,12 +49,30 @@ export function Login() {
     }
   };
 
-  const handleConnectWallet = async () => {
+  const handleWalletLogin = async () => {
     try {
-      await connectWallet();
-      toast.success('Wallet connected successfully!');
-    } catch (error) {
-      toast.error('Failed to connect wallet');
+      await loginWithWallet();
+      toast.success('Wallet login successful!');
+      navigate('/');
+    } catch (err: any) {
+      setShowWalletRegister(true);
+    }
+  };
+
+  const handleWalletRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerEmail) {
+      toast.error('Please enter your email');
+      return;
+    }
+    try {
+      await registerWithWallet(registerEmail);
+      toast.success('Wallet registered and linked!');
+      setShowWalletRegister(false);
+      clearWalletError();
+      navigate('/');
+    } catch (err) {
+      // Error is handled by walletError
     }
   };
 
@@ -77,38 +88,6 @@ export function Login() {
       </div>
 
       <div className="space-y-4">
-        {/* Wallet Connection Status */}
-        {isConnected && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm font-medium text-green-800">Wallet Connected</p>
-            <p className="text-xs text-green-600 mt-1">
-              Address: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-            </p>
-            <p className="text-xs text-green-600">
-              Balance: {balance.toFixed(4)} SOL
-            </p>
-          </div>
-        )}
-
-        {/* Connect Wallet Button */}
-        {!isConnected && (
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleConnectWallet}
-            disabled={isConnecting}
-          >
-            <svg
-              className="mr-2 h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            {isConnecting ? 'Connecting...' : 'Connect Phantom Wallet'}
-          </Button>
-        )}
-
         <Button
           variant="outline"
           className="w-full"
@@ -219,6 +198,41 @@ export function Login() {
             )}
           </div>
         </form>
+
+        <div className="flex flex-col gap-2">
+          <WalletMultiButton className="w-full" />
+          <Button className="w-full" variant="outline" onClick={handleWalletLogin}>
+            Login with Wallet
+          </Button>
+        </div>
+
+        {walletError && (
+          <div className="bg-red-100 border border-red-300 text-red-700 rounded p-3 text-sm flex flex-col gap-2 mt-2">
+            <span>{walletError}</span>
+            <Button size="sm" variant="outline" onClick={clearWalletError} className="self-end">Dismiss</Button>
+          </div>
+        )}
+
+        {showWalletRegister && !walletError && (
+          <form onSubmit={handleWalletRegister} className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <label htmlFor="registerEmail" className="text-sm font-medium">
+                Email for Wallet Registration
+              </label>
+              <Input
+                id="registerEmail"
+                type="email"
+                placeholder="name@example.com"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Register Wallet
+            </Button>
+          </form>
+        )}
 
         <div className="text-center text-xs text-muted-foreground">
           <p>

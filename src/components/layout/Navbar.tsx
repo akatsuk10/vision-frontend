@@ -20,8 +20,7 @@ import { useStore } from "@/store/useStore"
 import { motion, AnimatePresence } from "framer-motion"
 
 export function Navbar() {
-  const { isAuthenticated, user, logout } = useAuth()
-  const { isConnected, publicKey, balance, connectWallet, disconnectWallet } = useSolanaStore()
+  const { isAuthenticated, user, logout, walletAddress, logoutWallet, walletError, clearWalletError } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [scrolled, setScrolled] = useState(false)
@@ -94,34 +93,42 @@ export function Navbar() {
 
           {/* Wallet Status */}
           <div className="flex items-center gap-2">
-            {isConnected ? (
+            {isAuthenticated && walletAddress && (
               <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1">
                 <Wallet className="h-4 w-4 text-green-600" />
                 <span className="text-xs text-green-800 font-medium">
-                  {publicKey?.toString().slice(0, 4)}...{publicKey?.toString().slice(-4)}
-                </span>
-                <span className="text-xs text-green-600">
-                  {balance.toFixed(2)} SOL
+                  {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={disconnectWallet}
+                  onClick={logoutWallet}
                   className="h-6 px-2 text-xs text-green-600 hover:text-green-800"
                 >
                   Disconnect
                 </Button>
               </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={connectWallet}
-                className="flex items-center gap-2"
-              >
-                <Wallet className="h-4 w-4" />
-                Connect Wallet
-              </Button>
+            )}
+            {isAuthenticated && user && user.email && (
+              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
+                <span className="text-xs text-blue-800 font-medium">
+                  {user.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Logout
+                </Button>
+              </div>
+            )}
+            {walletError && (
+              <div className="bg-red-100 border border-red-300 text-red-700 rounded p-2 text-xs flex flex-col gap-1 ml-2">
+                <span>{walletError}</span>
+                <Button size="sm" variant="outline" onClick={clearWalletError} className="self-end">Dismiss</Button>
+              </div>
             )}
           </div>
           {isAuthenticated ? (
@@ -286,12 +293,16 @@ export function Navbar() {
                       >
                         Profile
                       </Link>
+                      <Link
+                        to="/settings"
+                        className="block p-2 text-sm text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Settings
+                      </Link>
                       <button
+                        onClick={() => { logout(); setIsMenuOpen(false); }}
                         className="block w-full text-left p-2 text-sm text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-colors"
-                        onClick={() => {
-                          logout()
-                          setIsMenuOpen(false)
-                        }}
                       >
                         Log out
                       </button>
@@ -307,7 +318,7 @@ export function Navbar() {
                       </Link>
                       <Link
                         to="/signup"
-                        className="block p-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-lg text-center shadow-[inset_0_-2px_4px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.1)]"
+                        className="block p-2 text-sm text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sign up
